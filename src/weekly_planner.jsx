@@ -153,31 +153,21 @@ function useClock() {
 // ---------------------------------
 // UI
 // ---------------------------------
-function EventBlock({ e, done, onToggle, dense=false, highlight=false, hero=false, muted=false, interactive=true, showCheck=true }) {
+function EventBlock({ e, dense=false, highlight=false, hero=false, muted=false }) {
   const palette = muted ? "bg-gray-50 border-gray-300 text-gray-700" : (CATS[e.cat] || "bg-gray-100 border-gray-300 text-gray-900");
   const pad = hero ? "px-6 py-6" : dense ? "px-3 py-2" : "px-4 py-3";
   const titleSize = hero ? "text-lg sm:text-xl" : dense ? "text-sm" : "text-sm sm:text-base";
   const layout = hero ? "flex flex-col items-center text-center gap-3" : "flex items-center gap-4";
   return (
-    <button
-      onClick={interactive ? onToggle : undefined}
-      disabled={!interactive}
-      role={interactive ? "checkbox" : undefined}
-      aria-checked={interactive ? done : undefined}
-      className={`w-full rounded-2xl border ${palette} ${pad} shadow-sm ${layout} transition active:scale-[0.99] ${done ? "opacity-60" : ""} ${highlight ? "ring-2 ring-gray-900/10" : ""} ${!interactive ? "cursor-default" : ""}`}
-      title={interactive ? (done ? "Mark as not done" : "Mark as done") : undefined}
+    <div
+      className={`w-full rounded-2xl border ${palette} ${pad} shadow-sm ${layout} ${highlight ? "ring-2 ring-gray-900/10" : ""}`}
     >
-      {showCheck && (
-        <div className={`w-7 h-7 rounded-md border flex items-center justify-center ${done ? "bg-gray-800 text-white" : "bg-white/70"}`}>
-          {done ? "✓" : ""}
-        </div>
-      )}
       <div className="flex-1">
-        <div className={`font-semibold ${done ? "line-through" : ""} ${titleSize}`}>{e.title}</div>
+        <div className={`font-semibold ${titleSize}`}>{e.title}</div>
         <div className="text-xs opacity-80">{e.start} – {e.end}</div>
       </div>
       {!hero && <div className="hidden sm:block text-[10px] uppercase tracking-wide opacity-70">{e.cat}</div>}
-    </button>
+    </div>
   );
 }
 
@@ -196,7 +186,7 @@ function Segmented({ mode, setMode }) {
   );
 }
 
-function FocusPanel({ blocks, isDone, onToggle, nowMinutes }) {
+function FocusPanel({ blocks, nowMinutes }) {
   const idx = currentBlockIndex(blocks, nowMinutes);
   const curr = blocks[idx];
   const next = blocks[Math.min(blocks.length - 1, idx + 1)];
@@ -206,12 +196,8 @@ function FocusPanel({ blocks, isDone, onToggle, nowMinutes }) {
         {curr && (
           <EventBlock
             e={curr}
-            done={isDone(curr)}
-            onToggle={() => onToggle(curr)}
             highlight
             hero
-            interactive={false}
-            showCheck={false}
           />
         )}
       </div>
@@ -220,12 +206,8 @@ function FocusPanel({ blocks, isDone, onToggle, nowMinutes }) {
         {next && (
           <EventBlock
             e={next}
-            done={isDone(next)}
-            onToggle={() => onToggle(next)}
             dense
             muted
-            interactive={false}
-            showCheck={false}
           />
         )}
       </div>
@@ -250,33 +232,7 @@ export default function WeeklyPlanner() {
 
   const { timeStr, tzIana, tzAbbr, minutes } = useClock();
 
-  // completion state (manual check in Compact; auto for earlier blocks when viewing today)
-  const [doneSet, setDoneSet] = useState(new Set());
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(`planner:done:${dateKey}`);
-      if (raw) setDoneSet(new Set(JSON.parse(raw)));
-      else setDoneSet(new Set());
-    } catch { setDoneSet(new Set()); }
-  }, [dateKey]);
-  useEffect(() => {
-    try { localStorage.setItem(`planner:done:${dateKey}`, JSON.stringify(Array.from(doneSet))); } catch {}
-  }, [doneSet, dateKey]);
-
   const blocks = schedules[activeDayName] || [];
-  const idxNow = blocks.length ? currentBlockIndex(blocks, minutes) : 0;
-  const autoDoneIds = isToday ? new Set(blocks.slice(0, idxNow).map(blockId)) : new Set();
-  const isDone = (b) => doneSet.has(blockId(b)) || autoDoneIds.has(blockId(b));
-  const doneCount = blocks.reduce((acc, b) => acc + (isDone(b) ? 1 : 0), 0);
-
-  const toggleBlock = (b) => {
-    const id = blockId(b);
-    setDoneSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
 
   const shiftDate = (days) => {
     const d = new Date(activeDate);
@@ -321,13 +277,10 @@ export default function WeeklyPlanner() {
           // Compact list
           <section className="mt-4 sm:mt-6">
             <div className={dense ? "space-y-1" : "space-y-3"}>
-              <ProgressBar total={blocks.length} done={doneCount} />
               {blocks.map((e, i) => (
                 <EventBlock
                   key={i}
                   e={e}
-                  done={isDone(e)}
-                  onToggle={() => toggleBlock(e)}
                   dense={dense}
                 />
               ))}
@@ -336,15 +289,12 @@ export default function WeeklyPlanner() {
         ) : (
           // Focus hero
           <section className="mt-6">
-            <ProgressBar total={blocks.length} done={doneCount} />
-            <div className="mt-3">
-              <FocusPanel blocks={blocks} isDone={isDone} onToggle={toggleBlock} nowMinutes={minutes} />
-            </div>
+            <FocusPanel blocks={blocks} nowMinutes={minutes} />
           </section>
         )}
 
         <footer className="mt-8 text-xs text-gray-500">
-          Times are aligned to :00 / :30. <strong>Compact</strong> allows manual check; <strong>Focus</strong> updates progress automatically by time.
+          Times are aligned to :00 / :30. <strong>Compact</strong> shows list view; <strong>Focus</strong> highlights current and next task.
           <div className="mt-1">Workdays are Mon–Thu 4:00–11:00 pm; Gym only Fri–Sun.</div>
         </footer>
       </div>
@@ -361,18 +311,6 @@ export default function WeeklyPlanner() {
           a { text-decoration: none; }
         }
       `}</style>
-    </div>
-  );
-}
-
-function ProgressBar({ total, done }) {
-  const pct = total ? Math.round((done / total) * 100) : 0;
-  return (
-    <div className="flex items-center gap-3">
-      <div className="h-2 flex-1 bg-gray-200 rounded-full overflow-hidden">
-        <div className="h-full bg-gray-800" style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-xs text-gray-600">{done}/{total} · {pct}%</span>
     </div>
   );
 }
