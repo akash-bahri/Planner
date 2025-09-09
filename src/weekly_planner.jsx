@@ -4,29 +4,29 @@ import React, { useEffect, useMemo, useState } from "react";
 // Modes: Compact (list with manual check) and Focus (hero current + grey up-next). Default = Focus.
 
 // ---------------------------------
-// Category palettes
+// Category palettes - Professional & Sophisticated
 // ---------------------------------
 const CATS = {
-  Sleep: "bg-slate-100 border-slate-300 text-slate-900",
-  "Wake + Meditate": "bg-amber-100 border-amber-300 text-amber-900",
-  Breakfast: "bg-orange-100 border-orange-300 text-orange-900",
-  DSA: "bg-indigo-100 border-indigo-300 text-indigo-900",
-  Break: "bg-teal-100 border-teal-300 text-teal-900",
-  "System Design": "bg-violet-100 border-violet-300 text-violet-900",
-  "Job Applications": "bg-blue-100 border-blue-300 text-blue-900",
-  Lunch: "bg-lime-100 border-lime-300 text-lime-900",
-  "Buffer / Admin": "bg-zinc-100 border-zinc-300 text-zinc-900",
-  Commute: "bg-cyan-100 border-cyan-300 text-cyan-900",
-  Work: "bg-rose-100 border-rose-300 text-rose-900",
-  "Dinner / Wind-down": "bg-pink-100 border-pink-300 text-pink-900",
-  Gym: "bg-emerald-100 border-emerald-300 text-emerald-900",
-  Chores: "bg-stone-100 border-stone-300 text-stone-900",
-  Leisure: "bg-yellow-100 border-yellow-300 text-yellow-900",
-  "Weekly Review & Plan": "bg-fuchsia-100 border-fuchsia-300 text-fuchsia-900",
-  Brunch: "bg-lime-100 border-lime-300 text-lime-900",
-  "Hobby / Reading": "bg-sky-100 border-sky-300 text-sky-900",
-  "System Design Review": "bg-violet-100 border-violet-300 text-violet-900",
-  "Free / Optional": "bg-white border-gray-300 border-dashed text-gray-700",
+  Sleep: "bg-slate-50 border-slate-200 text-slate-800",
+  "Wake + Meditate": "bg-amber-50 border-amber-200 text-amber-800",
+  Breakfast: "bg-orange-50 border-orange-200 text-orange-800",
+  DSA: "bg-indigo-50 border-indigo-200 text-indigo-800",
+  Break: "bg-emerald-50 border-emerald-200 text-emerald-800",
+  "System Design": "bg-purple-50 border-purple-200 text-purple-800",
+  "Job Applications": "bg-blue-50 border-blue-200 text-blue-800",
+  Lunch: "bg-green-50 border-green-200 text-green-800",
+  "Buffer / Admin": "bg-gray-50 border-gray-200 text-gray-800",
+  Commute: "bg-cyan-50 border-cyan-200 text-cyan-800",
+  Work: "bg-rose-50 border-rose-200 text-rose-800",
+  "Dinner / Wind-down": "bg-pink-50 border-pink-200 text-pink-800",
+  Gym: "bg-teal-50 border-teal-200 text-teal-800",
+  Chores: "bg-stone-50 border-stone-200 text-stone-800",
+  Leisure: "bg-yellow-50 border-yellow-200 text-yellow-800",
+  "Weekly Review & Plan": "bg-violet-50 border-violet-200 text-violet-800",
+  Brunch: "bg-lime-50 border-lime-200 text-lime-800",
+  "Hobby / Reading": "bg-sky-50 border-sky-200 text-sky-800",
+  "System Design Review": "bg-fuchsia-50 border-fuchsia-200 text-fuchsia-800",
+  "Free / Optional": "bg-white border-gray-200 border-dashed text-gray-600",
 };
 
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -154,19 +154,29 @@ function useClock() {
 // UI
 // ---------------------------------
 function EventBlock({ e, dense=false, highlight=false, hero=false, muted=false }) {
-  const palette = muted ? "bg-gray-50 border-gray-300 text-gray-700" : (CATS[e.cat] || "bg-gray-100 border-gray-300 text-gray-900");
-  const pad = hero ? "px-6 py-6" : dense ? "px-3 py-2" : "px-4 py-3";
-  const titleSize = hero ? "text-lg sm:text-xl" : dense ? "text-sm" : "text-sm sm:text-base";
-  const layout = hero ? "flex flex-col items-center text-center gap-3" : "flex items-center gap-4";
+  const palette = muted 
+    ? "bg-gray-50 border-gray-200 text-gray-600" 
+    : (CATS[e.cat] || "bg-gray-50 border-gray-200 text-gray-700");
+  const pad = hero ? "px-6 py-6" : dense ? "px-3 py-2.5" : "px-4 py-4";
+  const titleSize = hero ? "text-xl sm:text-2xl" : dense ? "text-sm" : "text-base";
+  const layout = hero ? "flex flex-col items-center text-center gap-3" : "flex flex-col items-center text-center gap-2";
+  
+  // Don't show category if it's the same as the title (case-insensitive)
+  const showCategory = !hero && e.title.toLowerCase() !== e.cat.toLowerCase();
+  
   return (
     <div
-      className={`w-full rounded-2xl border ${palette} ${pad} shadow-sm ${layout} ${highlight ? "ring-2 ring-gray-900/10" : ""}`}
+      className={`w-full rounded-xl border ${palette} ${pad} shadow-sm ${layout} ${
+        highlight 
+          ? "ring-2 ring-blue-500/30 shadow-md border-blue-300" 
+          : ""
+      } transition-all duration-200 hover:shadow-md hover:border-opacity-70`}
     >
-      <div className="flex-1">
-        <div className={`font-semibold ${titleSize}`}>{e.title}</div>
-        <div className="text-xs opacity-80">{e.start} – {e.end}</div>
+      <div className="text-center">
+        <div className={`font-semibold ${titleSize} leading-snug`}>{e.title}</div>
+        <div className="text-xs opacity-70 mt-1.5 font-medium">{e.start} – {e.end}</div>
+        {showCategory && <div className="text-[10px] uppercase tracking-wider opacity-60 mt-1 font-medium">{e.cat}</div>}
       </div>
-      {!hero && <div className="hidden sm:block text-[10px] uppercase tracking-wide opacity-70">{e.cat}</div>}
     </div>
   );
 }
@@ -175,11 +185,15 @@ function Segmented({ mode, setMode }) {
   const btn = (m, label) => (
     <button
       onClick={() => setMode(m)}
-      className={`px-3 py-1.5 text-sm rounded-lg border transition ${mode === m ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-300 text-gray-700"}`}
+      className={`px-4 py-2.5 text-sm rounded-lg border transition-all duration-200 font-medium ${
+        mode === m 
+          ? "bg-slate-800 text-white border-slate-800 shadow-sm" 
+          : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400"
+      }`}
     >{label}</button>
   );
   return (
-    <div className="inline-flex gap-1 p-1 rounded-xl bg-gray-100 border border-gray-200">
+    <div className="inline-flex gap-1 p-1 rounded-xl bg-slate-50 border border-slate-200 shadow-sm">
       {btn("compact", "Compact")}
       {btn("focus", "Focus")}
     </div>
@@ -191,7 +205,7 @@ function FocusPanel({ blocks, nowMinutes }) {
   const curr = blocks[idx];
   const next = blocks[Math.min(blocks.length - 1, idx + 1)];
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
         {curr && (
           <EventBlock
@@ -201,14 +215,19 @@ function FocusPanel({ blocks, nowMinutes }) {
           />
         )}
       </div>
-      <div className="pt-1">
-        <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Up next</div>
-        {next && (
+      <div className="text-center">
+        <div className="text-xs uppercase tracking-wider text-slate-400 mb-3 font-medium">Up Next</div>
+        {next && next !== curr && (
           <EventBlock
             e={next}
             dense
             muted
           />
+        )}
+        {next === curr && (
+          <div className="text-sm text-slate-500 italic py-4">
+            This is your last task for today
+          </div>
         )}
       </div>
     </div>
@@ -243,18 +262,22 @@ export default function WeeklyPlanner() {
   const dense = mode === "compact";
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 text-slate-900">
       {/* Sticky header with live clock */}
-      <div className="sticky top-0 z-10 backdrop-blur bg-white/80 border-b">
+      <div className="sticky top-0 z-10 backdrop-blur-lg bg-white/95 border-b border-slate-200/60 shadow-sm">
         <div className="mx-auto max-w-3xl p-4 sm:p-6 flex items-end justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold truncate">Today’s Planner</h1>
-            <p className="text-xs sm:text-sm text-gray-600">{fmtLongDate(activeDate)} · {dayNameFromDate(activeDate)}</p>
-            <p className="text-[11px] text-gray-500">Timezone: {tzIana}{tzAbbr ? ` (${tzAbbr})` : ""}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold truncate bg-gradient-to-r from-slate-900 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+              Daily Planner
+            </h1>
+            <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">{fmtLongDate(activeDate)} · {dayNameFromDate(activeDate)}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Timezone: {tzIana}{tzAbbr ? ` (${tzAbbr})` : ""}</p>
           </div>
           <div className="text-right select-none" aria-live="polite" aria-atomic="true">
-            <div className="font-semibold tabular-nums text-3xl sm:text-5xl leading-none">{isToday ? timeStr : "--:--"}</div>
-            <div className="text-xs text-gray-500">{isToday ? "current time" : "viewing different day"}</div>
+            <div className="font-bold tabular-nums text-4xl sm:text-6xl leading-none bg-gradient-to-r from-slate-800 via-blue-700 to-indigo-700 bg-clip-text text-transparent">
+              {isToday ? timeStr : "--:--"}
+            </div>
+            <div className="text-xs text-slate-500 mt-1 font-medium">{isToday ? "current time" : "viewing different day"}</div>
           </div>
         </div>
       </div>
@@ -262,12 +285,27 @@ export default function WeeklyPlanner() {
       <div className="mx-auto max-w-3xl p-4 sm:p-6">
         {/* Controls */}
         <section className="print:hidden">
-          <div className="w-full flex justify-center gap-2">
-            <button onClick={() => shiftDate(-1)} className="rounded-lg border px-3 py-2 text-sm">← Yesterday</button>
-            <button onClick={() => setActiveDate(new Date())} className="rounded-lg border px-3 py-2 text-sm">Today</button>
-            <button onClick={() => shiftDate(1)} className="rounded-lg border px-3 py-2 text-sm">Tomorrow →</button>
+          <div className="w-full flex justify-center gap-3 mb-4">
+            <button 
+              onClick={() => shiftDate(-1)} 
+              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 shadow-sm"
+            >
+              ← Yesterday
+            </button>
+            <button 
+              onClick={() => setActiveDate(new Date())} 
+              className="rounded-xl border border-blue-300 px-4 py-2.5 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 hover:border-blue-400 transition-all duration-200 shadow-sm"
+            >
+              Today
+            </button>
+            <button 
+              onClick={() => shiftDate(1)} 
+              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 shadow-sm"
+            >
+              Tomorrow →
+            </button>
           </div>
-          <div className="mt-3 w-full flex justify-center items-center">
+          <div className="w-full flex justify-center items-center">
             <Segmented mode={mode} setMode={setMode} />
           </div>
         </section>
@@ -293,9 +331,12 @@ export default function WeeklyPlanner() {
           </section>
         )}
 
-        <footer className="mt-8 text-xs text-gray-500">
-          Times are aligned to :00 / :30. <strong>Compact</strong> shows list view; <strong>Focus</strong> highlights current and next task.
-          <div className="mt-1">Workdays are Mon–Thu 4:00–11:00 pm; Gym only Fri–Sun.</div>
+        <footer className="mt-12 text-center text-xs text-slate-400 border-t border-slate-100 pt-6">
+          <div className="space-y-2">
+            <p>Times are aligned to :00 / :30 intervals</p>
+            <p><strong>Compact</strong> shows full schedule list • <strong>Focus</strong> highlights current and next task</p>
+            <p className="text-slate-400">Workdays: Mon–Thu 4:00–11:00 pm • Gym: Fri–Sun</p>
+          </div>
         </footer>
       </div>
 
