@@ -37,20 +37,14 @@ const DAYS = [
   "Friday",
   "Saturday",
   "Sunday",
-] as const;
-
-type DayName = typeof DAYS[number];
-
-type Block = { title: string; start: string; end: string; cat: keyof typeof CATS | string };
-
-type Mode = "comfort" | "compact" | "focus";
+];
 
 // ---------------------------------
 // Schedule builder (fixed :00/:30)
 // ---------------------------------
-function daySchedule(day: DayName): Block[] {
+function daySchedule(day) {
   // Anchors
-  const weekdayMorning: Block[] = [
+  const weekdayMorning = [
     { title: "Wake + Meditate", start: "8:30 AM", end: "9:00 AM", cat: "Wake + Meditate" },
     { title: "Breakfast", start: "9:00 AM", end: "9:30 AM", cat: "Breakfast" },
     { title: "DSA", start: "9:30 AM", end: "11:00 AM", cat: "DSA" },
@@ -58,7 +52,7 @@ function daySchedule(day: DayName): Block[] {
     { title: "System Design", start: "11:30 AM", end: "12:00 PM", cat: "System Design" },
   ];
 
-  const weekendMorning: Block[] = [
+  const weekendMorning = [
     { title: "Wake + Meditate", start: "10:00 AM", end: "10:30 AM", cat: "Wake + Meditate" },
     { title: "Breakfast", start: "10:30 AM", end: "11:00 AM", cat: "Breakfast" },
     { title: "Study (DSA/SD)", start: "11:00 AM", end: "12:00 PM", cat: "DSA" },
@@ -121,7 +115,7 @@ function daySchedule(day: DayName): Block[] {
 // -------------------------------------------------
 // Minimal self‑tests (runtime validation – no deps)
 // -------------------------------------------------
-function parseTimeToMinutes(t: string) {
+function parseTimeToMinutes(t) {
   // "HH:MM AM/PM" → minutes since midnight
   const [time, ampm] = t.split(" ");
   let [hStr, mStr] = time.split(":");
@@ -132,15 +126,15 @@ function parseTimeToMinutes(t: string) {
   return h * 60 + m;
 }
 
-function isNowInRange(start: number, end: number, now: number) {
+function isNowInRange(start, end, now) {
   // supports wrap‑around blocks (e.g., 11:30 PM → 12:30 AM)
   if (end > start) return now >= start && now < end;
   return now >= start || now < end; // wrap
 }
 
-function validateSchedule(day: DayName, blocks: Block[]) {
-  const issues: string[] = [];
-  const mustBeOnGrid = (mm: number) => mm % 30 === 0;
+function validateSchedule(day, blocks) {
+  const issues = [];
+  const mustBeOnGrid = (mm) => mm % 30 === 0;
 
   // 1) Times on :00 or :30 & positive durations (support wrap)
   blocks.forEach((b) => {
@@ -169,13 +163,13 @@ function validateSchedule(day: DayName, blocks: Block[]) {
 }
 
 function runSelfTests() {
-  const all: string[] = [];
-  (DAYS as DayName[]).forEach((d) => {
+  const all = [];
+  DAYS.forEach((d) => {
     const blocks = daySchedule(d);
     all.push(...validateSchedule(d, blocks));
   });
   // Additional spot checks for focus logic
-  const mon = daySchedule("Monday" as DayName);
+  const mon = daySchedule("Monday");
   const idxWork = currentBlockIndex(mon, 16 * 60 + 15); // 4:15 PM
   if (mon[idxWork]?.cat !== "Work") all.push("Monday: 4:15 PM should be within Work block");
   const idxDinner = currentBlockIndex(mon, 23 * 60 + 45); // 11:45 PM
@@ -186,9 +180,9 @@ function runSelfTests() {
 // ---------------------
 // Helpers for dates & state
 // ---------------------
-function dayNameFromDate(d: Date): DayName {
+function dayNameFromDate(d) {
   const idx = d.getDay(); // 0=Sun
-  const map: DayName[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as DayName[];
+  const map = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   return map[idx] ?? "Monday";
 }
 
@@ -203,7 +197,7 @@ function fmtLongDate(d = new Date()) {
   return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 }
 
-function blockId(b: Block) {
+function blockId(b) {
   return `${b.title}|${b.start}-${b.end}`;
 }
 
@@ -225,8 +219,8 @@ function useClock() {
 // ---------------------
 // UI components
 // ---------------------
-function EventBlock({ e, done, onToggle, dense = false, highlight = false, hero = false, muted = false, interactive = true, showCheck = true }: { e: Block; done: boolean; onToggle: () => void; dense?: boolean; highlight?: boolean; hero?: boolean; muted?: boolean; interactive?: boolean; showCheck?: boolean }) {
-  const palette = muted ? "bg-gray-50 border-gray-300 text-gray-700" : (CATS[e.cat as keyof typeof CATS] || "bg-gray-100 border-gray-300 text-gray-900");
+function EventBlock({ e, done, onToggle, dense = false, highlight = false, hero = false, muted = false, interactive = true, showCheck = true }) {
+  const palette = muted ? "bg-gray-50 border-gray-300 text-gray-700" : (CATS[e.cat] || "bg-gray-100 border-gray-300 text-gray-900");
   const pad = hero ? "px-6 py-6" : dense ? "px-3 py-2" : "px-4 py-3";
   const titleSize = hero ? "text-lg sm:text-xl" : dense ? "text-sm" : "text-sm sm:text-base";
   const layout = hero ? "flex flex-col items-center text-center gap-3" : "flex items-center gap-4";
@@ -266,7 +260,7 @@ function Legend() {
   );
 }
 
-function ProgressBar({ total, done }: { total: number; done: number }) {
+function ProgressBar({ total, done }) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   return (
     <div className="flex items-center gap-3">
@@ -278,8 +272,8 @@ function ProgressBar({ total, done }: { total: number; done: number }) {
   );
 }
 
-function Segmented({ mode, setMode }: { mode: Mode; setMode: (m: Mode) => void }) {
-  const btn = (m: Mode, label: string) => (
+function Segmented({ mode, setMode }) {
+  const btn = (m, label) => (
     <button
       onClick={() => setMode(m)}
       className={`px-3 py-1.5 text-sm rounded-lg border transition ${mode === m ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-300 text-gray-700"}`}
@@ -295,7 +289,7 @@ function Segmented({ mode, setMode }: { mode: Mode; setMode: (m: Mode) => void }
 }
 
 // Focus view helpers
-function currentBlockIndex(blocks: Block[], nowMinutes: number) {
+function currentBlockIndex(blocks, nowMinutes) {
   for (let i = 0; i < blocks.length; i++) {
     const s = parseTimeToMinutes(blocks[i].start);
     const e = parseTimeToMinutes(blocks[i].end);
@@ -307,7 +301,7 @@ function currentBlockIndex(blocks: Block[], nowMinutes: number) {
   return blocks.length - 1;
 }
 
-function FocusPanel({ blocks, isDone, onToggle, nowMinutes }: { blocks: Block[]; isDone: (b: Block) => boolean; onToggle: (b: Block) => void; nowMinutes: number; }) {
+function FocusPanel({ blocks, isDone, onToggle, nowMinutes }) {
   const idx = currentBlockIndex(blocks, nowMinutes);
   const curr = blocks[idx];
   const next = blocks[Math.min(blocks.length - 1, idx + 1)];
@@ -330,18 +324,18 @@ function FocusPanel({ blocks, isDone, onToggle, nowMinutes }: { blocks: Block[];
 }
 
 export default function WeeklyPlanner() {
-  const [mode, setMode] = useState<Mode>("comfort");
+  const [mode, setMode] = useState("comfort");
   const [showTests, setShowTests] = useState(false);
 
   const schedules = useMemo(() => {
-    const map: Record<DayName, Block[]> = {} as any;
-    (DAYS as DayName[]).forEach((d) => { map[d] = daySchedule(d); });
+    const map = {};
+    DAYS.forEach((d) => { map[d] = daySchedule(d); });
     return map;
   }, []);
 
   // --- Day detection & nav ---
-  const [activeDate, setActiveDate] = useState<Date>(new Date());
-  const activeDayName: DayName = useMemo(() => dayNameFromDate(activeDate), [activeDate]);
+  const [activeDate, setActiveDate] = useState(new Date());
+  const activeDayName = useMemo(() => dayNameFromDate(activeDate), [activeDate]);
   const dateKey = useMemo(() => localDateKey(activeDate), [activeDate]);
   const isToday = dateKey === localDateKey();
 
@@ -349,7 +343,7 @@ export default function WeeklyPlanner() {
   const { timeStr, tzIana, tzAbbr, minutes } = useClock();
 
   // --- Completion state (persist per dateKey) ---
-  const [doneSet, setDoneSet] = useState<Set<string>>(new Set());
+  const [doneSet, setDoneSet] = useState(new Set());
   useEffect(() => {
     try {
       const raw = localStorage.getItem(`planner:done:${dateKey}`);
@@ -367,11 +361,11 @@ export default function WeeklyPlanner() {
   const blocks = schedules[activeDayName];
   const total = blocks.length;
   const idxNow = currentBlockIndex(blocks, minutes);
-  const autoDoneIds = isToday ? new Set(blocks.slice(0, idxNow).map(blockId)) : new Set<string>();
-  const isDone = (b: Block) => doneSet.has(blockId(b)) || autoDoneIds.has(blockId(b));
+  const autoDoneIds = isToday ? new Set(blocks.slice(0, idxNow).map(blockId)) : new Set();
+  const isDone = (b) => doneSet.has(blockId(b)) || autoDoneIds.has(blockId(b));
   const doneCount = blocks.reduce((acc, b) => acc + (isDone(b) ? 1 : 0), 0);
 
-  const toggleBlock = (b: Block) => {
+  const toggleBlock = (b) => {
     const id = blockId(b);
     setDoneSet((prev) => {
       const next = new Set(prev);
@@ -380,7 +374,7 @@ export default function WeeklyPlanner() {
     });
   };
 
-  const shiftDate = (days: number) => {
+  const shiftDate = (days) => {
     const d = new Date(activeDate);
     d.setDate(d.getDate() + days);
     setActiveDate(d);
