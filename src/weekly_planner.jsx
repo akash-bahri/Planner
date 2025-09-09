@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 // Weekly Planner — :00/:30 grid, Mon–Thu Work 4–11 pm, mobile-friendly
+// Modes: Compact (list with manual check) and Focus (hero current + grey up-next). Default = Focus.
 
 // ---------------------------------
 // Category palettes
@@ -189,7 +190,6 @@ function Segmented({ mode, setMode }) {
   );
   return (
     <div className="inline-flex gap-1 p-1 rounded-xl bg-gray-100 border border-gray-200">
-      {btn("comfort", "Comfort")}
       {btn("compact", "Compact")}
       {btn("focus", "Focus")}
     </div>
@@ -234,7 +234,8 @@ function FocusPanel({ blocks, isDone, onToggle, nowMinutes }) {
 }
 
 export default function WeeklyPlanner() {
-  const [mode, setMode] = useState("comfort");
+  // default to Focus as requested
+  const [mode, setMode] = useState("focus");
 
   const schedules = useMemo(() => {
     const map = {};
@@ -249,7 +250,7 @@ export default function WeeklyPlanner() {
 
   const { timeStr, tzIana, tzAbbr, minutes } = useClock();
 
-  // completion state (manual check in comfort/compact; auto for earlier blocks when viewing today)
+  // completion state (manual check in Compact; auto for earlier blocks when viewing today)
   const [doneSet, setDoneSet] = useState(new Set());
   useEffect(() => {
     try {
@@ -317,6 +318,7 @@ export default function WeeklyPlanner() {
 
         {/* Views */}
         {mode !== "focus" ? (
+          // Compact list
           <section className="mt-4 sm:mt-6">
             <div className={dense ? "space-y-1" : "space-y-3"}>
               <ProgressBar total={blocks.length} done={doneCount} />
@@ -332,6 +334,7 @@ export default function WeeklyPlanner() {
             </div>
           </section>
         ) : (
+          // Focus hero
           <section className="mt-6">
             <ProgressBar total={blocks.length} done={doneCount} />
             <div className="mt-3">
@@ -341,7 +344,7 @@ export default function WeeklyPlanner() {
         )}
 
         <footer className="mt-8 text-xs text-gray-500">
-          Times are aligned to :00 / :30. Comfort/Compact allow manual check; Focus updates progress automatically by time.
+          Times are aligned to :00 / :30. <strong>Compact</strong> allows manual check; <strong>Focus</strong> updates progress automatically by time.
           <div className="mt-1">Workdays are Mon–Thu 4:00–11:00 pm; Gym only Fri–Sun.</div>
         </footer>
       </div>
